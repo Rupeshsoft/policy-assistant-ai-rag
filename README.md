@@ -10,12 +10,12 @@ A FastAPI-based authentication and authorization system with role-based access c
 - ✅ Role-based access control
 - ✅ Admin dashboard endpoint
 - ✅ CORS enabled
-- ✅ MySQL database with SQLAlchemy ORM
+- ✅ MySQL database with SQLAlchemy 
 
 ## Tech Stack
 
 | Technology | Purpose |
-|------------|---------|
+|------------|---------|ORM
 | **FastAPI** | Web framework |
 | **SQLAlchemy** | ORM for database interaction |
 | **PyMySQL** | MySQL database driver |

@@ -5,7 +5,7 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
 @router.get("/dashboard")
-def admin_dashboard(current_user: dict = Depends(admin_required)):
+def admin_dashboard(current_user=Depends(admin_required)):
     """Admin-only dashboard endpoint."""
     return {
         "message": "Welcome Admin",

@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database.database import engine
 from app.models.user import User
+from app.models.document import Document
 from app.database.database import Base
 
 Base.metadata.create_all(bind=engine)

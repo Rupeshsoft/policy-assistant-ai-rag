@@ -71,7 +71,8 @@ def login(user:UserLogin,db:Session=Depends(get_db)):
 
         {
             "sub":db_user.email,
-            "role":db_user.role
+            "role":db_user.role,
+            "id": db_user.id
         }
 
     )
