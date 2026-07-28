@@ -2,6 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.auth import router as auth_router
 from app.routers.document import router as document_router
+from app.routers.document_reader import router as reader_router
+from app.routers.chatbot import router as chatbot_router
+
+
 
 from app.routers import auth
 from app.routers import admin
@@ -24,7 +28,9 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(document_router)
+app.include_router(reader_router)
 
+app.include_router(chatbot_router)
 
 
 @app.get("/")

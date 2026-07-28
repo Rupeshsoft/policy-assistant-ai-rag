@@ -17,11 +17,24 @@ from app.auth.security import get_current_user, _validate_token_and_get_user, oa
 from fastapi.responses import FileResponse
 
 from app.services.file_service import save_file
+from app.services.extractor import TextExtractor
 
+
+router = APIRouter(
+    prefix="/extract",
+    tags=["Text Extraction"]
+)
+    
 router = APIRouter(
     prefix="/documents",
     tags=["Documents"]
 )
+
+router = APIRouter(
+    prefix="/embeddings",
+    tags=["Embeddings"]
+)
+
 
 
 async def _resolve_upload_user(
@@ -180,11 +193,8 @@ def download(
         filename=doc.original_filename
     )
     
-    
-    
-import os
 
-
+    
 @router.delete("/{document_id}")
 def delete_document(
 
@@ -217,4 +227,133 @@ def delete_document(
     return {
 
         "message": "Deleted Successfully"
+    }    
+    
+    
+
+
+@router.post("/{document_id}")
+def extract_text(
+    document_id: int,
+    db: Session = Depends(get_db)
+):
+
+    document = db.query(Document).filter(
+        Document.id == document_id
+    ).first()
+
+    if document is None:
+        return {
+            "message": "Document Not Found"
+        }
+
+    extracted = TextExtractor.extract_document(
+        document.filepath
+    )
+
+    return {
+        "document_id": document.id,
+        "filename": document.original_filename,
+        "pages": len(extracted),
+        "content": extracted
+    }
+    
+
+@router.post("/{document_id}")
+
+def chunk_document(document_id:int,
+                   db:Session=Depends(get_db)):
+
+    document=db.query(Document).filter(
+
+        Document.id==document_id
+
+    ).first()
+
+    extracted=TextExtractor.extract_document(
+
+        document.filepath
+
+    )
+
+    chunks=ChunkingService.chunk_document(
+
+        document_id=document.id,
+
+        document_name=document.original_filename,
+
+        extracted_pages=extracted,
+
+        chunk_size=300,
+
+        overlap=50
+
+    )
+
+    return {
+
+        "document":document.original_filename,
+
+        "total_chunks":len(chunks),
+
+        "chunks":chunks
+
+    }    
+
+
+
+
+# router = APIRouter(
+#     prefix="/embeddings",
+#     tags=["Embeddings"]
+# )
+
+
+@router.post("/{document_id}")
+def create_embeddings(
+
+    document_id: int,
+
+    db: Session = Depends(get_db)
+
+):
+
+    document = db.query(Document).filter(
+
+        Document.id == document_id
+
+    ).first()
+
+    extracted = TextExtractor.extract_document(
+
+        document.filepath
+
+    )
+
+    chunks = ChunkingService.chunk_document(
+
+        document_id=document.id,
+
+        document_name=document.original_filename,
+
+        extracted_pages=extracted
+
+    )
+
+    ChunkStorageService.store_chunks(
+
+        db,
+
+        chunks
+
+    )
+
+    return {
+
+        "document": document.original_filename,
+
+        "chunks": len(chunks),
+
+        "status": "Stored"
+
     }    

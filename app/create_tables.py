@@ -8,7 +8,10 @@ from app.database.database import engine
 from app.models.user import User
 from app.models.document import Document
 from app.database.database import Base
+from app.models.chunk_metadata import ChunkMetadata
 
+
+Base.metadata.create_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 print("Database Created Successfully")
