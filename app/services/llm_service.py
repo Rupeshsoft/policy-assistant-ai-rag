@@ -5,9 +5,11 @@ from typing import Any, List
 # Try importing Ollama; fallback to a mock for testing
 try:
     import ollama
+    import httpx
     OLLAMA_AVAILABLE = True
 except ImportError:
     OLLAMA_AVAILABLE = False
+    httpx = None
 
 
 class LLMService:
@@ -76,10 +78,11 @@ class LLMService:
                     messages=[{"role": "user", "content": prompt}],
                 )
                 return response["message"]["content"]
+            except (ollama.ResponseError, httpx.ConnectError, ConnectionError, ConnectionRefusedError) as exc:
+                # Ollama binary/server not running or not reachable — graceful fallback
+                return LLMService._mock_response(prompt)
             except Exception as exc:
                 return f"[Ollama error: {exc}]"
-        else:
-            return LLMService._mock_response(prompt)
 
     @staticmethod
     def validate_response(raw_response: str) -> str:
