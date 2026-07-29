@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter
 from fastapi import UploadFile
 from fastapi import File
@@ -18,21 +20,13 @@ from fastapi.responses import FileResponse
 
 from app.services.file_service import save_file
 from app.services.extractor import TextExtractor
+from app.services.chunking_service import ChunkingService
+from app.services.chunk_storage_service import ChunkStorageService
 
 
-router = APIRouter(
-    prefix="/extract",
-    tags=["Text Extraction"]
-)
-    
 router = APIRouter(
     prefix="/documents",
     tags=["Documents"]
-)
-
-router = APIRouter(
-    prefix="/embeddings",
-    tags=["Embeddings"]
 )
 
 
@@ -232,7 +226,7 @@ def delete_document(
     
 
 
-@router.post("/{document_id}")
+@router.post("/{document_id}/extract")
 def extract_text(
     document_id: int,
     db: Session = Depends(get_db)
@@ -259,101 +253,60 @@ def extract_text(
     }
     
 
-@router.post("/{document_id}")
-
-def chunk_document(document_id:int,
-                   db:Session=Depends(get_db)):
-
-    document=db.query(Document).filter(
-
-        Document.id==document_id
-
-    ).first()
-
-    extracted=TextExtractor.extract_document(
-
-        document.filepath
-
-    )
-
-    chunks=ChunkingService.chunk_document(
-
-        document_id=document.id,
-
-        document_name=document.original_filename,
-
-        extracted_pages=extracted,
-
-        chunk_size=300,
-
-        overlap=50
-
-    )
-
-    return {
-
-        "document":document.original_filename,
-
-        "total_chunks":len(chunks),
-
-        "chunks":chunks
-
-    }    
-
-
-
-
-# router = APIRouter(
-#     prefix="/embeddings",
-#     tags=["Embeddings"]
-# )
-
-
-@router.post("/{document_id}")
-def create_embeddings(
-
-    document_id: int,
-
-    db: Session = Depends(get_db)
-
-):
+@router.post("/{document_id}/chunk")
+def chunk_document(document_id: int,
+                   db: Session = Depends(get_db)):
 
     document = db.query(Document).filter(
-
         Document.id == document_id
-
     ).first()
 
     extracted = TextExtractor.extract_document(
-
         document.filepath
-
     )
 
     chunks = ChunkingService.chunk_document(
-
         document_id=document.id,
-
         document_name=document.original_filename,
-
-        extracted_pages=extracted
-
-    )
-
-    ChunkStorageService.store_chunks(
-
-        db,
-
-        chunks
-
+        extracted_pages=extracted,
+        chunk_size=300,
+        overlap=50
     )
 
     return {
-
         "document": document.original_filename,
+        "total_chunks": len(chunks),
+        "chunks": chunks
+    }
 
+
+@router.post("/{document_id}/embeddings")
+def create_embeddings(
+    document_id: int,
+    db: Session = Depends(get_db)
+):
+
+    document = db.query(Document).filter(
+        Document.id == document_id
+    ).first()
+
+    extracted = TextExtractor.extract_document(
+        document.filepath
+    )
+
+    chunks = ChunkingService.chunk_document(
+        document_id=document.id,
+        document_name=document.original_filename,
+        extracted_pages=extracted
+    )
+
+    ChunkStorageService.store_chunks(
+        db,
+        chunks
+    )
+
+    return {
+        "document": document.original_filename,
         "chunks": len(chunks),
-
         "status": "Stored"
-
-    }    
+    }

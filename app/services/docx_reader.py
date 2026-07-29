@@ -21,7 +21,7 @@ class DOCXReader:
 
                 paragraphs.append(
                     {
-                        "paragraph": paragraph_number,
+                        "page": paragraph_number,
                         "text": text
                     }
                 )

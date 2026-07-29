@@ -1,5 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import nltk
+import nltk.data
+
+try:
+    nltk.data.find("tokenizers/punkt")
+except LookupError:
+    nltk.download("punkt")
 
 from app.services.tokenizer import TokenizerService
 from app.services.heading_detector import HeadingDetector
@@ -92,7 +98,7 @@ class ChunkingService:
 
                             "created_at":
 
-                            datetime.utcnow().isoformat()
+                            datetime.now(timezone.utc).isoformat()
 
                         }
 
@@ -142,7 +148,7 @@ class ChunkingService:
 
                         "created_at":
 
-                        datetime.utcnow().isoformat()
+                        datetime.now(timezone.utc).isoformat()
 
                     }
 
